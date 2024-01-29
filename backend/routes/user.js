@@ -22,7 +22,7 @@ router.post("/signup", async function (req, res) {
 
   if (!isUserDetailsCorrect.success) {
     return res.status(404).json({
-      err: "Please enter the user details again!",
+      err: isUserDetailsCorrect.error,
     });
   }
 
@@ -35,7 +35,7 @@ router.post("/signup", async function (req, res) {
   const newUser = await User.create(req.body);
   await Account.create({
     userId: newUser._id,
-    balance: 400,
+    balance: Math.floor(Math.random() * 1000),
   });
   const token = jwt.sign({ userId: newUser._id }, process.env.JWTPass);
 

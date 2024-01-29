@@ -1,10 +1,10 @@
 const express = require("express");
+const mongoose = require("mongoose");
 const zod = require("zod");
 const { Account, User } = require("../db");
 const authMiddleware = require("../middleware");
-const { default: mongoose } = require("mongoose");
-const router = express.Router();
 
+const router = express.Router();
 router.use(express.json());
 
 router.get("/balance", authMiddleware, async (req, res) => {
@@ -29,17 +29,17 @@ const transferBody = zod.object({
 router.post("/transfer", authMiddleware, async (req, res) => {
   const { success } = transferBody.safeParse(req.body);
 
-  const session = await mongoose.startSession();
-
-  await session.startTransaction();
-  const { to, amount } = req.body;
-
   if (!success) {
-    await session.abortTransaction();
     return res.status(411).json({
       message: "Incorrect input details",
     });
   }
+
+  //Starting the session
+  const session = await mongoose.startSession();
+
+  session.startTransaction();
+  const { to, amount } = req.body;
 
   const recieverUser = await User.findOne({
     username: to,
@@ -47,20 +47,15 @@ router.post("/transfer", authMiddleware, async (req, res) => {
 
   const recieverAccount =
     recieverUser &&
-    (
-      await Account.findOne({
-        userId: recieverUser._id,
-      })
-    ).session(session);
+    (await Account.findOne({
+      userId: recieverUser._id,
+    }).session(session));
 
   if (!recieverAccount) {
     await session.abortTransaction();
-    return res
-      .status(400)
-      .json({
-        message: "Invalid Account",
-      })
-      .session(session);
+    return res.status(400).json({
+      message: "Invalid Account",
+    });
   }
 
   const sourceAccount = await Account.findOne({
@@ -87,7 +82,6 @@ router.post("/transfer", authMiddleware, async (req, res) => {
   }
 
   await session.abortTransaction();
-
   res.status(400).json({
     message: "Insufficient balance",
   });
