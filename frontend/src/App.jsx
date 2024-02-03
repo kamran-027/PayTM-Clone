@@ -1,11 +1,23 @@
+import Signup from "./Pages/Signup";
+import React from "react";
+import { BrowserRouter, Route, Routes } from "react-router-dom";
+import Signin from "./Pages/Signin";
+import Dashboard from "./Pages/Dashboard";
+import TransferMoney from "./Pages/TransferMoney";
 
 function App() {
-
   return (
-    <div>
-        Hello world
-    </div>
-  )
+    <>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/signup" element={<Signup />} />
+          <Route path="/signin" element={<Signin />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/transfer" element={<TransferMoney />} />
+        </Routes>
+      </BrowserRouter>
+    </>
+  );
 }
 
-export default App
+export default App;
