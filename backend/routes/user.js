@@ -3,9 +3,11 @@ const z = require("zod");
 const jwt = require("jsonwebtoken");
 const { User, Account } = require("../db");
 const authMiddleware = require("../middleware");
+const cors = require("cors");
 
 const router = express.Router();
 router.use(express.json());
+router.use(cors());
 
 const userDetails = z.object({
   username: z.string().min(3).email(),
@@ -98,6 +100,20 @@ router.put("/", authMiddleware, async (req, res) => {
   });
 });
 
+router.get("/self", authMiddleware, async (req, res) => {
+  const userDetails = await User.findById(req.userId);
+
+  if (!userDetails) {
+    res.status(404).json({
+      err: "User not found",
+    });
+  }
+
+  res.status(200).json({
+    user: userDetails,
+  });
+});
+
 router.get("/bulk", authMiddleware, async (req, res) => {
   const filter = req.query.filter || "";
 
@@ -113,6 +129,12 @@ router.get("/bulk", authMiddleware, async (req, res) => {
         id: user._id,
       };
     }),
+  });
+});
+
+router.use((req, res, err, next) => {
+  res.status(501).json({
+    err: "There is something up with server",
   });
 });
 

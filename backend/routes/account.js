@@ -3,9 +3,11 @@ const mongoose = require("mongoose");
 const zod = require("zod");
 const { Account, User } = require("../db");
 const authMiddleware = require("../middleware");
+const cors = require("cors");
 
 const router = express.Router();
 router.use(express.json());
+router.use(cors());
 
 router.get("/balance", authMiddleware, async (req, res) => {
   const userAccount = await Account.findOne({ userId: req.userId });
@@ -16,13 +18,11 @@ router.get("/balance", authMiddleware, async (req, res) => {
     });
   }
 
-  res.status(200).json({
-    message: `The balance is ${userAccount.balance}`,
-  });
+  res.status(200).send(`${userAccount.balance}`);
 });
 
 const transferBody = zod.object({
-  to: zod.string().email(),
+  to: zod.any(),
   amount: zod.number(),
 });
 
@@ -41,9 +41,7 @@ router.post("/transfer", authMiddleware, async (req, res) => {
   session.startTransaction();
   const { to, amount } = req.body;
 
-  const recieverUser = await User.findOne({
-    username: to,
-  });
+  const recieverUser = await User.findById(to);
 
   const recieverAccount =
     recieverUser &&
