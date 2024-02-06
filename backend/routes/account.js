@@ -1,7 +1,7 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const zod = require("zod");
-const { Account, User } = require("../db");
+const { Account } = require("../db");
 const authMiddleware = require("../middleware");
 const cors = require("cors");
 
@@ -41,13 +41,9 @@ router.post("/transfer", authMiddleware, async (req, res) => {
   session.startTransaction();
   const { to, amount } = req.body;
 
-  const recieverUser = await User.findById(to);
-
-  const recieverAccount =
-    recieverUser &&
-    (await Account.findOne({
-      userId: recieverUser._id,
-    }).session(session));
+  const recieverAccount = await Account.findOne({
+    userId: to,
+  }).session(session);
 
   if (!recieverAccount) {
     await session.abortTransaction();
@@ -74,6 +70,7 @@ router.post("/transfer", authMiddleware, async (req, res) => {
     ).session(session);
 
     await session.commitTransaction();
+
     return res.status(200).json({
       message: "Transfer succesfull",
     });

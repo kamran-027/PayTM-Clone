@@ -21,10 +21,10 @@ const TransferMoney = ({
         },
       }
     );
+    setRefreshBalance((state) => !state);
   };
 
   return (
-    // <div className="flex justify-center h-screen items-center bg-gray-300">
     <div className="flex flex-col bg-white gap-2 p-10 w-3/12 rounded-md border-2 border-gray-200">
       <div
         className="font-bold flex justify-end mr-5 cursor-pointer"
@@ -54,12 +54,10 @@ const TransferMoney = ({
           transferMoney();
           setAmount("");
           setShowTransferModal(false);
-          setRefreshBalance((state) => !state);
         }}
       >
         Initiate Transfer
       </button>
-      {/* </div> */}
     </div>
   );
 };
